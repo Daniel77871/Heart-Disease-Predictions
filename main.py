@@ -428,9 +428,13 @@ def plot_conf_matrix(names, classifiers, X_train, y_train, X_val, y_val,
     for clf, ax in zip(classifiers, axes.flatten()):
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_val)
-        cm = confusion_matrix(y_val, y_pred)
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-        disp.plot(ax=ax)
+        # Compute confusion matrix with labels=[0, 1], then flip rows
+        cm = confusion_matrix(y_val, y_pred, labels=[0, 1])
+        cm_display = cm[::-1]  # Flip rows: Y-axis becomes 1 (top) -> 0 (bottom)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm_display, display_labels=[1, 0])
+        disp.plot(ax=ax, colorbar=False)
+        # Fix X-axis labels to show 0 (left) -> 1 (right)
+        ax.set_xticklabels([0, 1])
         ax.set_title(names[i])
         i = i + 1
 
@@ -673,9 +677,11 @@ def main():
     # Plot confusion matrix for tuned LR
     fig, ax = plt.subplots(figsize=(6, 5))
     y_pred_lr = lr_tuned.predict(X_val)
-    cm_lr = confusion_matrix(y_val, y_pred_lr)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm_lr)
+    cm_lr = confusion_matrix(y_val, y_pred_lr, labels=[0, 1])
+    cm_lr_display = cm_lr[::-1]  # Flip rows
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm_lr_display, display_labels=[1, 0])
     disp.plot(ax=ax)
+    ax.set_xticklabels([0, 1])  # Fix X-axis labels
     ax.set_title('Logistic Regression (Tuned)')
     plt.savefig('plots/lr_tuned_confusion_matrix.png', dpi=300, bbox_inches='tight')
     plt.close()
@@ -749,9 +755,11 @@ def main():
     # Plot confusion matrix for tuned LGBM
     fig, ax = plt.subplots(figsize=(6, 5))
     y_pred_lgbm = lgbm.predict(X_val)
-    cm_lgbm = confusion_matrix(y_val, y_pred_lgbm)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm_lgbm)
+    cm_lgbm = confusion_matrix(y_val, y_pred_lgbm, labels=[0, 1])
+    cm_lgbm_display = cm_lgbm[::-1]  # Flip rows
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm_lgbm_display, display_labels=[1, 0])
     disp.plot(ax=ax)
+    ax.set_xticklabels([0, 1])  # Fix X-axis labels
     ax.set_title('LightGBM (Tuned)')
     plt.savefig('plots/lgbm_tuned_confusion_matrix.png', dpi=300, bbox_inches='tight')
     plt.close()
